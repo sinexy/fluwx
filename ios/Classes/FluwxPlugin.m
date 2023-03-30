@@ -11,7 +11,9 @@
 
 typedef void(^FluwxWXReqRunnable)(void);
 
-@implementation FluwxPlugin
+@implementation FluwxPlugin{
+    FlutterEventSink _eventSink;
+  }
 FluwxAuthHandler *_fluwxAuthHandler;
 FluwxShareHandler *_fluwxShareHandler;
 BOOL _isRunning;
@@ -33,12 +35,39 @@ FlutterMethodChannel *channel = nil;
         FluwxPlugin *instance = [[FluwxPlugin alloc] initWithRegistrar:registrar methodChannel:channel];
         [registrar addMethodCallDelegate:instance channel:channel];
         [[FluwxResponseHandler defaultManager] setMethodChannel:channel];
+            
+        FlutterEventChannel *chargingChannel =
+                [FlutterEventChannel eventChannelWithName:@"flow/fluwx/events"
+                                          binaryMessenger:[registrar messenger]];
+        [chargingChannel setStreamHandler:instance];
         
         [registrar addApplicationDelegate:instance];
 #if TARGET_OS_IPHONE
         }
 #endif
 
+}
+
+- (void)managerDidRecvLaunchFromWXReqWithMessage:(NSString *)msg {
+    if(_eventSink){
+        _eventSink(msg);
+    }else {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t) (0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            if(_eventSink){
+                _eventSink(msg);
+            }
+        });
+    }
+}
+- (FlutterError *_Nullable)onListenWithArguments:(id _Nullable)arguments
+                                       eventSink:(nonnull FlutterEventSink)eventSink {
+  _eventSink = eventSink;
+  return nil;
+}
+
+- (FlutterError *_Nullable)onCancelWithArguments:(id _Nullable)arguments {
+  _eventSink = nil;
+  return nil;
 }
 
 - (instancetype)initWithRegistrar:(NSObject <FlutterPluginRegistrar> *)registrar methodChannel:(FlutterMethodChannel *)flutterMethodChannel {

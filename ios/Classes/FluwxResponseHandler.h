@@ -41,6 +41,8 @@
 - (void)managerDidRecvPayInsuranceResponse:(WXPayInsuranceResp *)response;
 
 - (void)managerDidRecvPaymentResponse:(PayResp *)response;
+
+- (void)managerDidRecvLaunchFromWXReqWithMessage:(NSString *)msg;
 @end
 
 @interface FluwxResponseHandler : NSObject <WXApiDelegate>
