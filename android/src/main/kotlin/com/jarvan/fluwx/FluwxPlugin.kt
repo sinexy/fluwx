@@ -53,6 +53,9 @@ class FluwxPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             flutterPluginBinding.flutterAssets,
             flutterPluginBinding.applicationContext
         )
+        var eventChannel =EventChannel(flutterPluginBinding.binaryMessenger,"flow/fluwx/events")
+        eventChannel.setStreamHandler(this)
+
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
